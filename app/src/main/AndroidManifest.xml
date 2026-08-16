@@ -6,6 +6,7 @@
     <application
         android:allowBackup="false"
         android:label="@string/app_name"
+        android:icon="@drawable/nova_fr_icon_512-1"
         android:theme="@style/Theme.NovaFR"
         android:largeHeap="true">
 
