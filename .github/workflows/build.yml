@@ -26,10 +26,10 @@ jobs:
         with:
           ndk-version: r25c
 
-      - name: Fetch llama.cpp source
+      - name: Fetch stable llama.cpp source
         run: |
           if [ ! -d "app/src/main/cpp/llama.cpp" ]; then
-            git clone https://github.com/ggerganov/llama.cpp.git app/src/main/cpp/llama.cpp
+            git clone --depth 1 --branch b3500 https://github.com/ggerganov/llama.cpp.git app/src/main/cpp/llama.cpp
           fi
 
       - name: Generate Gradle Wrapper
