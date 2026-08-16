@@ -39,8 +39,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     private val _isDownloading = MutableStateFlow(false)
     val isDownloading: StateFlow<Boolean> = _isDownloading.asStateFlow()
 
-    // ⚠️ Update this with your Hugging Face model URL when ready ⚠️
-    private val modelUrl = "https://huggingface.co/username/repository/resolve/main/Atlas-FirstAid.Q4_K_M.gguf"
+    private val modelUrl = "https://huggingface.co/Kami574/Atlas-FirstAid/resolve/main/Atlas-FirstAid.Q4_K_M.gguf"
 
     init {
         viewModelScope.launch {
