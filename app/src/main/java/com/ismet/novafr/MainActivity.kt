@@ -13,6 +13,7 @@ import androidx.compose.ui.unit.dp
 import com.ismet.novafr.ui.ChatScreen
 import com.ismet.novafr.ui.ChatViewModel
 import com.ismet.novafr.ui.theme.NovaFRTheme
+import java.io.File
 
 class MainActivity : ComponentActivity() {
 
@@ -20,6 +21,37 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Register crash handler FIRST, before anything else can crash
+        Thread.setDefaultUncaughtExceptionHandler(CrashHandler(applicationContext))
+
+        // If a crash happened last run, show it instead of the normal app
+        val crashFile = File(filesDir, "last_crash.txt")
+        if (crashFile.exists()) {
+            setContent {
+                NovaFRTheme {
+                    Surface(
+                        modifier = Modifier.fillMaxSize(),
+                        color = MaterialTheme.colorScheme.background
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text("Last crash log:", style = MaterialTheme.typography.titleMedium)
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(crashFile.readText())
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Button(onClick = {
+                                crashFile.delete()
+                                recreate()
+                            }) {
+                                Text("Clear and continue")
+                            }
+                        }
+                    }
+                }
+            }
+            return
+        }
+
         setContent {
             NovaFRTheme {
                 Surface(
