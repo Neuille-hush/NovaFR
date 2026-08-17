@@ -63,7 +63,7 @@ The AI inside Nova F-R is called **Atlas** — a small language model (Qwen2.5-1
 
 ## About the creator
 
-Nova F-R was created by **Ismet Beljulji**, 17, born in Germany and currently living in France. Built as a solo passion project with the goal of putting real, offline emergency guidance into the hands of anyone who needs it — regardless of connectivity, location, or access to formal training.
+Nova F-R was created by me, **Ismet Beljulji**, 17, born in Germany and currently living in France. Built as a solo passion project with the goal of putting real, offline emergency guidance into the hands of anyone who needs it — regardless of connectivity, location, or access to formal training.
 
 **Supporting Organization:** [Nova STEM](https://novastem.org) — a youth-led educational initiative. Ismet serves as CS Mentor, Lead Engineer, and Researcher for Nova STEM. The Nova F-R name and branding are used with Nova STEM's permission under a formal collaboration agreement.
 
