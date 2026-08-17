@@ -1,7 +1,11 @@
 #include <jni.h>
 #include <string>
 #include <vector>
+#include <android/log.h>
 #include "llama.h"
+
+#define LOGI(...) __android_log_print(ANDROID_LOG_INFO, "NovaFR_Native", __VA_ARGS__)
+#define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, "NovaFR_Native", __VA_ARGS__)
 
 static llama_model* g_model = nullptr;
 static llama_context* g_ctx = nullptr;
@@ -11,6 +15,7 @@ extern "C" {
 JNIEXPORT jboolean JNICALL
 Java_com_ismet_novafr_NativeLib_nativeLoadModel(JNIEnv* env, jobject thiz, jstring model_path) {
     const char* path = env->GetStringUTFChars(model_path, nullptr);
+    LOGI("Attempting to load model from path: %s", path);
 
     llama_backend_init();
 
@@ -20,21 +25,30 @@ Java_com_ismet_novafr_NativeLib_nativeLoadModel(JNIEnv* env, jobject thiz, jstri
     env->ReleaseStringUTFChars(model_path, path);
 
     if (!g_model) {
+        LOGE("FATAL: llama_load_model_from_file failed! Model pointer is null.");
         return JNI_FALSE;
     }
 
+    LOGI("Model loaded successfully! Initializing context...");
+
     llama_context_params ctx_params = llama_context_default_params();
-    ctx_params.n_ctx = 2048;
+    ctx_params.n_ctx = 512;       // Safe context size for mobile RAM
     ctx_params.n_threads = 4;
 
-    // Fixed function name for b3500
     g_ctx = llama_new_context_with_model(g_model, ctx_params);
-    return (g_ctx != nullptr) ? JNI_TRUE : JNI_FALSE;
+    if (!g_ctx) {
+        LOGE("FATAL: llama_new_context_with_model failed!");
+        return JNI_FALSE;
+    }
+
+    LOGI("Context initialized successfully!");
+    return JNI_TRUE;
 }
 
 JNIEXPORT jstring JNICALL
 Java_com_ismet_novafr_NativeLib_nativeGenerate(JNIEnv* env, jobject thiz, jstring prompt) {
     if (!g_model || !g_ctx) {
+        LOGE("Error: Attempted to generate text, but model/context is null!");
         return env->NewStringUTF("Error: Model not loaded in C++ engine.");
     }
 
@@ -75,7 +89,7 @@ Java_com_ismet_novafr_NativeLib_nativeGenerate(JNIEnv* env, jobject thiz, jstrin
 
     tokens.resize(n_tokens);
 
-    // Initial batch (tokens, n_tokens, pos_0, seq_id)
+    // Initial batch
     llama_batch batch = llama_batch_get_one(tokens.data(), tokens.size(), 0, 0);
     if (llama_decode(g_ctx, batch) != 0) {
         return env->NewStringUTF("Error: Initial decode failed.");
@@ -109,7 +123,6 @@ Java_com_ismet_novafr_NativeLib_nativeGenerate(JNIEnv* env, jobject thiz, jstrin
             output.append(buf, n);
         }
 
-        // Single token batch update (token_ptr, count, position, seq_id)
         batch = llama_batch_get_one(&new_token_id, 1, curr_pos, 0);
         curr_pos++;
 
