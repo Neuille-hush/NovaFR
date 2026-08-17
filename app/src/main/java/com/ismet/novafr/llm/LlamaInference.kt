@@ -1,5 +1,6 @@
 package com.ismet.novafr.llm
 
+import com.ismet.novafr.NativeLib
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -13,12 +14,6 @@ class LlamaInference private constructor() {
 
         const val SYSTEM_PROMPT = """You are Atlas, a first-aid and emergency response assistant. You are built on Qwen2.5-1.5B and are designed by Ismet Beljulji to help people in crisis situations with no internet access. Your goal is to give clear, actionable, and safe advice for common emergencies, injuries, and survival scenarios. If you don't know the answer, say so—do not guess or invent protocols. Always prioritize the safety of the user and remind them to seek professional medical help when possible. Never suggest harmful or unproven remedies (e.g., freezing ticks, applying heat to burns). Stay calm, clear, and concise. You are not a doctor—you are a first-aid companion."""
 
-        const val TEMPERATURE = 0.3f
-        const val TOP_P = 0.9f
-        const val TOP_K = 40
-        const val REPEAT_PENALTY = 1.15f
-        const val MAX_NEW_TOKENS = 300
-
         @Volatile
         private var INSTANCE: LlamaInference? = null
 
@@ -29,27 +24,10 @@ class LlamaInference private constructor() {
         }
     }
 
-    private external fun nativeLoadModel(modelPath: String): Boolean
-    private external fun nativeGenerate(
-        prompt: String,
-        temperature: Float,
-        topP: Float,
-        topK: Int,
-        repeatPenalty: Float,
-        maxTokens: Int
-    ): String
-    private external fun nativeFreeModel()
-
-    init {
-        System.loadLibrary("llama_android")
-    }
-
     suspend fun loadModel(modelPath: String): Boolean = withContext(Dispatchers.IO) {
         val file = File(modelPath)
-        if (!file.exists()) {
-            return@withContext false
-        }
-        val success = nativeLoadModel(modelPath)
+        if (!file.exists()) return@withContext false
+        val success = NativeLib.nativeLoadModel(modelPath)
         modelLoaded = success
         success
     }
@@ -63,23 +41,11 @@ class LlamaInference private constructor() {
         if (!modelLoaded) {
             return@withContext "The AI model isn't loaded yet. Please restart the app."
         }
-
         val prompt = buildPrompt(conversationHistory, newUserMessage)
-
-        nativeGenerate(
-            prompt,
-            TEMPERATURE,
-            TOP_P,
-            TOP_K,
-            REPEAT_PENALTY,
-            MAX_NEW_TOKENS
-        )
+        NativeLib.nativeGenerate(prompt)
     }
 
-    private fun buildPrompt(
-        history: List<Pair<String, String>>,
-        newUserMessage: String
-    ): String {
+    private fun buildPrompt(history: List<Pair<String, String>>, newUserMessage: String): String {
         val sb = StringBuilder()
         sb.append("<|im_start|>system\n$SYSTEM_PROMPT<|im_end|>\n")
         for ((role, content) in history) {
@@ -91,9 +57,7 @@ class LlamaInference private constructor() {
     }
 
     fun release() {
-        if (modelLoaded) {
-            nativeFreeModel()
-            modelLoaded = false
-        }
+        // No nativeFreeModel exists in your current C++ — leave this as a no-op for now
+        modelLoaded = false
     }
 }
