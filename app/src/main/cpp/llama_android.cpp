@@ -15,7 +15,6 @@ Java_com_ismet_novafr_NativeLib_nativeLoadModel(JNIEnv* env, jobject thiz, jstri
     llama_backend_init();
 
     llama_model_params model_params = llama_model_default_params();
-    // Fixed function name for b3500
     g_model = llama_load_model_from_file(path, model_params);
 
     env->ReleaseStringUTFChars(model_path, path);
@@ -28,7 +27,8 @@ Java_com_ismet_novafr_NativeLib_nativeLoadModel(JNIEnv* env, jobject thiz, jstri
     ctx_params.n_ctx = 2048;
     ctx_params.n_threads = 4;
 
-    g_ctx = llama_init_from_model(g_model, ctx_params);
+    // Fixed function name for b3500
+    g_ctx = llama_new_context_with_model(g_model, ctx_params);
     return (g_ctx != nullptr) ? JNI_TRUE : JNI_FALSE;
 }
 
