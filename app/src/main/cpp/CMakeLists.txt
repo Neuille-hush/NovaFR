@@ -21,7 +21,7 @@ target_include_directories(llama_android PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/llama.cpp
 )
 
-# Link libraries
+# Find and link the Android log library and core llama components
 find_library(log-lib log)
 target_link_libraries(llama_android
     PRIVATE
