@@ -15,7 +15,8 @@ Java_com_ismet_novafr_NativeLib_nativeLoadModel(JNIEnv* env, jobject thiz, jstri
     llama_backend_init();
 
     llama_model_params model_params = llama_model_default_params();
-    g_model = llama_model_load_from_file(path, model_params);
+    // Fixed function name for b3500
+    g_model = llama_load_model_from_file(path, model_params);
 
     env->ReleaseStringUTFChars(model_path, path);
 
