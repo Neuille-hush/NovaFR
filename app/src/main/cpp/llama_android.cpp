@@ -9,7 +9,7 @@ static llama_context* g_ctx = nullptr;
 extern "C" {
 
 JNIEXPORT jboolean JNICALL
-Java_com_novafr_app_NativeLib_nativeLoadModel(JNIEnv* env, jobject thiz, jstring model_path) {
+Java_com_ismet_novafr_NativeLib_nativeLoadModel(JNIEnv* env, jobject thiz, jstring model_path) {
     const char* path = env->GetStringUTFChars(model_path, nullptr);
 
     llama_backend_init();
@@ -32,7 +32,7 @@ Java_com_novafr_app_NativeLib_nativeLoadModel(JNIEnv* env, jobject thiz, jstring
 }
 
 JNIEXPORT jstring JNICALL
-Java_com_novafr_app_NativeLib_nativeGenerate(JNIEnv* env, jobject thiz, jstring prompt) {
+Java_com_ismet_novafr_NativeLib_nativeGenerate(JNIEnv* env, jobject thiz, jstring prompt) {
     if (!g_model || !g_ctx) {
         return env->NewStringUTF("Error: Model not loaded in C++ engine.");
     }
