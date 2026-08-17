@@ -16,8 +16,9 @@ extern "C" {
 JNIEXPORT jboolean JNICALL
 Java_com_ismet_novafr_NativeLib_nativeLoadModel(JNIEnv* env, jobject thiz, jstring model_path) {
     const char* path = env->GetStringUTFChars(model_path, nullptr);
-    LOGI("Attempting to load Qwen2.5 model from path: %s", path);
+    LOGI("Attempting to load model from path: %s", path);
 
+    // SAFETY CHECK: Verify file actually exists and can be opened
     FILE* test_file = fopen(path, "r");
     if (!test_file) {
         LOGE("FATAL: File does not exist or path is invalid: %s", path);
@@ -34,20 +35,19 @@ Java_com_ismet_novafr_NativeLib_nativeLoadModel(JNIEnv* env, jobject thiz, jstri
     env->ReleaseStringUTFChars(model_path, path);
 
     if (!g_model) {
-        LOGE("FATAL: llama_load_model_from_file returned null.");
+        LOGE("FATAL: llama_load_model_from_file returned null (Corrupted GGUF file or unsupported version).");
         return JNI_FALSE;
     }
 
-    LOGI("Qwen2.5 Model loaded successfully! Initializing context...");
+    LOGI("Model loaded successfully! Initializing context...");
 
     llama_context_params ctx_params = llama_context_default_params();
     ctx_params.n_ctx = 512;       
     ctx_params.n_threads = 4;
 
-    // Modern llama.cpp uses llama_init_from_model instead of legacy names
-    g_ctx = llama_init_from_model(g_model, ctx_params);
+    g_ctx = llama_new_context_with_model(g_model, ctx_params);
     if (!g_ctx) {
-        LOGE("FATAL: llama_init_from_model failed!");
+        LOGE("FATAL: llama_new_context_with_model failed!");
         return JNI_FALSE;
     }
 
