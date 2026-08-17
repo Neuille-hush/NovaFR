@@ -1,6 +1,7 @@
 #include <jni.h>
 #include <string>
 #include <vector>
+#include <cstdio>
 #include <android/log.h>
 #include "llama.h"
 
@@ -17,6 +18,15 @@ Java_com_ismet_novafr_NativeLib_nativeLoadModel(JNIEnv* env, jobject thiz, jstri
     const char* path = env->GetStringUTFChars(model_path, nullptr);
     LOGI("Attempting to load model from path: %s", path);
 
+    // SAFETY CHECK: Verify file actually exists and can be opened
+    FILE* test_file = fopen(path, "r");
+    if (!test_file) {
+        LOGE("FATAL: File does not exist or path is invalid: %s", path);
+        env->ReleaseStringUTFChars(model_path, path);
+        return JNI_FALSE;
+    }
+    fclose(test_file);
+
     llama_backend_init();
 
     llama_model_params model_params = llama_model_default_params();
@@ -25,14 +35,14 @@ Java_com_ismet_novafr_NativeLib_nativeLoadModel(JNIEnv* env, jobject thiz, jstri
     env->ReleaseStringUTFChars(model_path, path);
 
     if (!g_model) {
-        LOGE("FATAL: llama_load_model_from_file failed! Model pointer is null.");
+        LOGE("FATAL: llama_load_model_from_file returned null (Corrupted GGUF file or unsupported version).");
         return JNI_FALSE;
     }
 
     LOGI("Model loaded successfully! Initializing context...");
 
     llama_context_params ctx_params = llama_context_default_params();
-    ctx_params.n_ctx = 512;       // Safe context size for mobile RAM
+    ctx_params.n_ctx = 512;       
     ctx_params.n_threads = 4;
 
     g_ctx = llama_new_context_with_model(g_model, ctx_params);
@@ -56,7 +66,6 @@ Java_com_ismet_novafr_NativeLib_nativeGenerate(JNIEnv* env, jobject thiz, jstrin
     std::string text_prompt(prompt_str);
     env->ReleaseStringUTFChars(prompt, prompt_str);
 
-    // Tokenize prompt
     const int n_prompt_max = text_prompt.size() + 128;
     std::vector<llama_token> tokens(n_prompt_max);
     
@@ -89,7 +98,6 @@ Java_com_ismet_novafr_NativeLib_nativeGenerate(JNIEnv* env, jobject thiz, jstrin
 
     tokens.resize(n_tokens);
 
-    // Initial batch
     llama_batch batch = llama_batch_get_one(tokens.data(), tokens.size(), 0, 0);
     if (llama_decode(g_ctx, batch) != 0) {
         return env->NewStringUTF("Error: Initial decode failed.");
