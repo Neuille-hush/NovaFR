@@ -81,7 +81,7 @@ This project is open source under the **Apache License 2.0**. Contributions, for
 - [llama.cpp](https://github.com/ggerganov/llama.cpp) — Georgi Gerganov and contributors
 - [Unsloth](https://github.com/unslothai/unsloth) — fine-tuning framework
 - Qwen2.5 — Alibaba Cloud
-- Nova STEM — for the name, the mission, and the support
+- En Nova — for the name, the mission, and the support
 
 ---
 
